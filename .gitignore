@@ -4,6 +4,18 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+*.log
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+
 ### STS ###
 .apt_generated
 .classpath

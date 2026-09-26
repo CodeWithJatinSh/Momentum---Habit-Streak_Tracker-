@@ -137,23 +137,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Custom 401 Unauthorized JSON error handler
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
-                // URL authorization mapping - permit static frontend assets and auth endpoints
+                // URL authorization mapping
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/static/**",
-                                "/assets/**",
-                                "/css/**",
-                                "/js/**",
-                                "/favicon.ico",
-                                "/*.html",
-                                "/*.css",
-                                "/*.js",
-                                "/api/auth/**",
-                                "/error"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        // Public auth REST endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Protected REST API endpoints (require JWT)
+                        .requestMatchers("/api/**").authenticated()
+                        // All frontend static files, assets, and SPA paths are public
+                        .anyRequest().permitAll()
                 )
                 // Attach DAO authentication provider
                 .authenticationProvider(authenticationProvider())

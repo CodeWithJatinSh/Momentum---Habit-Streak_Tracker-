@@ -32,11 +32,13 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Non-root user for security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+# Non-root user with full permissions on /app
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    mkdir -p /app && chown -R appuser:appgroup /app
 
-COPY --from=backend-builder /app/target/momentum-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=backend-builder --chown=appuser:appgroup /app/target/momentum-0.0.1-SNAPSHOT.jar app.jar
+
+USER appuser
 
 ENV PORT=8080
 EXPOSE 8080

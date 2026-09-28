@@ -57,6 +57,7 @@ export default function App() {
       email: authData.email,
     };
     setUser(newUser);
+    setRefreshKey((prev) => prev + 1);
     setAuthModalState({ isOpen: false, tab: 'login' });
     showToast(`Welcome back, ${newUser.username}!`);
   };

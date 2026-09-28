@@ -34,7 +34,7 @@ WORKDIR /app
 
 # Non-root user with full permissions on /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
-    mkdir -p /app && chown -R appuser:appgroup /app
+    mkdir -p /app/data && chown -R appuser:appgroup /app
 
 COPY --from=backend-builder --chown=appuser:appgroup /app/target/momentum-0.0.1-SNAPSHOT.jar app.jar
 

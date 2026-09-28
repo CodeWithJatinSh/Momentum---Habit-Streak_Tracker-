@@ -75,9 +75,14 @@ export async function apiRequest(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  // Attach the JWT authorization token if the user is authenticated
+  // Check if target is an unauthenticated auth endpoint (login/register)
+  const isAuthEndpoint =
+    endpoint.includes('/api/auth/login') ||
+    endpoint.includes('/api/auth/register');
+
+  // Attach the JWT authorization token only for protected endpoints
   const token = getToken();
-  if (token) {
+  if (token && !isAuthEndpoint) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -92,27 +97,43 @@ export async function apiRequest(endpoint, options = {}) {
     headers,
   });
 
-  // Handle 401 Unauthorized: token expired or invalid credentials
-  if (response.status === 401) {
-    clearAuthSession();
-    // Dispatch a custom event so the UI can redirect or show a login dialog
-    window.dispatchEvent(new Event('auth:unauthorized'));
-    throw new Error('Session expired or unauthorized. Please sign in again.');
-  }
-
   // Handle 204 No Content (e.g. on DELETE requests)
   if (response.status === 204) {
     return null;
   }
 
-  // Parse the JSON response body
-  const data = await response.json();
+  // Parse the JSON response body safely
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    // Body is empty or non-JSON
+  }
+
+  // Handle 401 Unauthorized
+  if (response.status === 401) {
+    if (isAuthEndpoint) {
+      // Bad credentials or invalid credentials during login/register
+      const errorMsg =
+        data?.message ||
+        (data?.validationErrors
+          ? Object.values(data.validationErrors).join(', ')
+          : 'Invalid username/email or password');
+      throw new Error(errorMsg);
+    }
+
+    // Protected endpoint failed because token is expired or revoked
+    clearAuthSession();
+    // Dispatch a custom event so the UI can redirect or show a login dialog
+    window.dispatchEvent(new Event('auth:unauthorized'));
+    throw new Error('Session expired. Please sign in again.');
+  }
 
   // If response status is not 2xx, extract the error message and throw
   if (!response.ok) {
     const errorMsg =
-      data.message ||
-      (data.validationErrors ? Object.values(data.validationErrors).join(', ') : 'Request failed');
+      data?.message ||
+      (data?.validationErrors ? Object.values(data.validationErrors).join(', ') : 'Request failed');
     throw new Error(errorMsg);
   }
 

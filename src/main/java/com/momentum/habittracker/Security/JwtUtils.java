@@ -30,8 +30,8 @@ public class JwtUtils {
     @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
     private String jwtSecret;
 
-    /** Token validity duration in milliseconds (default: 24 hours) */
-    @Value("${jwt.expiration-ms:86400000}")
+    /** Token validity duration in milliseconds (default: 7 days) */
+    @Value("${jwt.expiration-ms:604800000}")
     private long jwtExpirationMs;
 
     /**
